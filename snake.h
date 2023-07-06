@@ -4,7 +4,16 @@
 #include <vector>
 #include <random>
 
+#include "include/camera.h"
+
 #include "cubo.h"
+
+enum snake_direction {
+    SNAKE_UP,
+    SNAKE_DOWN,
+    SNAKE_LEFT,
+    SNAKE_RIGHT,
+};
 
 class Snake
 {
@@ -20,7 +29,6 @@ private:
     vec3 last_dir;
 
     // Para la posición de la fruta
-
     std::random_device rd;
     std::mt19937 generator;
     std::uniform_int_distribution<int> distribution;
@@ -32,11 +40,12 @@ public:
     bool alive;
 
     void grow();
-    void update(float deltaTime, Cubo *food);
+    void update(Camera *camera, float deltaTime, Cubo *food);
     void draw();
+    void move(snake_direction dir);
 };
 
-Snake::Snake(Shader *sh) : shader(sh), generator(rd()), distribution(-5, 0)
+Snake::Snake(Shader *sh) : shader(sh), generator(rd()), distribution(-3, 3)
 {
     direccion = vec3(1.0f, 0.0f, 0.0f);
     alive = true; 
@@ -76,9 +85,11 @@ void Snake::grow()
     cubos.emplace_back(cubo);
 }
 
-void Snake::update(float deltaTime, Cubo *food)
+void Snake::update(Camera *camera, float deltaTime, Cubo *food)
 {
     timer += deltaTime;
+
+    camera->Position += direccion * (deltaTime / interval);
 
     if (timer >= interval) {
         timer = 0.0f;
@@ -124,5 +135,27 @@ void Snake::draw()
     }
 }
 
+void Snake::move(snake_direction dir)
+{
+    if (cubos.size() > 1) {
+        if (dir == SNAKE_UP && (cubos[0]->center[0] != cubos[1]->center[0]))
+            direccion = vec3( 0.0f, 1.0f, 0.0f);
+        if (dir == SNAKE_DOWN && (cubos[0]->center[0] != cubos[1]->center[0]))
+            direccion = vec3( 0.0f, -1.0f, 0.0f);
+        if (dir == SNAKE_RIGHT && (cubos[0]->center[1] != cubos[1]->center[1]))
+            direccion = vec3( 1.0f, 0.0f, 0.0f);
+        if (dir == SNAKE_LEFT && (cubos[0]->center[1] != cubos[1]->center[1]))
+            direccion = vec3(-1.0f, 0.0f, 0.0f);
+    } else {
+        if (dir == SNAKE_UP)
+            direccion = vec3( 0.0f, 1.0f, 0.0f);
+        if (dir == SNAKE_DOWN)
+            direccion = vec3( 0.0f, -1.0f, 0.0f);
+        if (dir == SNAKE_RIGHT)
+            direccion = vec3( 1.0f, 0.0f, 0.0f);
+        if (dir == SNAKE_LEFT)
+            direccion = vec3(-1.0f, 0.0f, 0.0f);
+    }
+}
 
 #endif

@@ -34,21 +34,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (action == GLFW_PRESS) {
         switch (key)
         {
-        case GLFW_KEY_J: 
-            if (snake->direccion[0] != -1.0f)
-                snake->direccion = vec3( 1.0f, 0.0f, 0.0f);
+        case GLFW_KEY_RIGHT:
+            snake->move(SNAKE_RIGHT);
             break;
-        case GLFW_KEY_G:
-            if (snake->direccion[0] !=  1.0f)
-                snake->direccion = vec3(-1.0f, 0.0f, 0.0f);
+        case GLFW_KEY_LEFT:
+            snake->move(SNAKE_LEFT);
             break;
-        case GLFW_KEY_Y:
-            if (snake->direccion[1] != -1.0f)
-                snake->direccion = vec3( 0.0f, 1.0f, 0.0f);
+        case GLFW_KEY_UP:
+            snake->move(SNAKE_UP);
             break;
-        case GLFW_KEY_H:
-            if (snake->direccion[1] !=  1.0f)
-                snake->direccion = vec3( 0.0f,-1.0f, 0.0f);
+        case GLFW_KEY_DOWN:
+            snake->move(SNAKE_DOWN);
             break;
         case GLFW_KEY_SPACE: snake->grow(); break;
         default: break;
@@ -102,7 +98,7 @@ int main(int argc, char *argv[])
 
     food->setShader(S);
     food->setColors(BLACK, BLACK, BLACK, BLACK, BLACK, BLACK);
-    food->translateVertex(vec3(rand() % 10, rand() % 10, 0.0f));
+    food->translateVertex(vec3(rand() % 5, rand() % 5, 0.0f));
 
     // Textures ===============================================================
     unsigned int texture1;
@@ -150,9 +146,8 @@ int main(int argc, char *argv[])
 
         // update
         // -----
-        snake->update(deltaTime, food);
-        // std::cout << deltaTime << ' ';
-       
+        snake->update(&camera, deltaTime, food);
+        
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -193,15 +188,6 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

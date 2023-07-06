@@ -16,10 +16,12 @@
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT
+    C_FORWARD,
+    C_BACKWARD,
+    C_LEFT,
+    C_RIGHT,
+    C_UP,
+    C_DOWN
 };
 
 // Default camera values
@@ -85,14 +87,18 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
-        if (direction == FORWARD)
+        if (direction == C_FORWARD)
             Position += Front * velocity;
-        if (direction == BACKWARD)
+        if (direction == C_BACKWARD)
             Position -= Front * velocity;
-        if (direction == LEFT)
+        if (direction == C_LEFT)
             Position -= Right * velocity;
-        if (direction == RIGHT)
+        if (direction == C_RIGHT)
             Position += Right * velocity;
+        if (direction == C_DOWN)
+            Position -= Up * velocity;
+        if (direction == C_UP)
+            Position += Up * velocity;
     }
 
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.

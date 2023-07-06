@@ -27,6 +27,7 @@ struct vec3
     vec3 operator-(const vec3& vec);
     vec3 operator-=(const vec3& vec);
     vec3 operator*(const float& scalar);
+    vec3 operator*=(const float& scalar);
     bool operator==(const vec3& vec);
 };
 
@@ -78,6 +79,13 @@ vec3 vec3::operator*(const float& scalar) {
     res[1] = (*this)[1] * scalar;
     res[2] = (*this)[2] * scalar;
     return res;
+}
+
+vec3 vec3::operator*=(const float& scalar) {
+    (*this)[0] *= scalar;
+    (*this)[1] *= scalar;
+    (*this)[2] *= scalar;
+    return *this;
 }
 
 bool vec3::operator==(const vec3& vec) {

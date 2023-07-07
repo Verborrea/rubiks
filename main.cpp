@@ -10,16 +10,15 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_WIDTH  = 800;
 const unsigned int SCR_HEIGHT = 600;
 const char        *WIN_NAME   = "Rubik's Snake";
 
 // objetos
 Snake* snake;
-Cubo*  food;
 
 // camera
-Camera camera(vec3(0.0f, 0.0f, 20.0f));
+Camera camera(vec3(0.0f, 0.0f, 18.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -46,7 +45,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         case GLFW_KEY_DOWN:
             snake->move(SNAKE_DOWN);
             break;
-        case GLFW_KEY_SPACE: snake->grow(); break;
         default: break;
         }
     }
@@ -94,11 +92,6 @@ int main(int argc, char *argv[])
     // Vertex info ============================================================
 
     snake = new Snake(S);
-    food = new Cubo;
-
-    food->setShader(S);
-    food->setColors(BLACK, BLACK, BLACK, BLACK, BLACK, BLACK);
-    food->translateVertex(vec3(rand() % 5, rand() % 5, 0.0f));
 
     // Textures ===============================================================
     unsigned int texture1;
@@ -146,7 +139,7 @@ int main(int argc, char *argv[])
 
         // update
         // -----
-        snake->update(&camera, deltaTime, food);
+        snake->update(&camera, deltaTime);
         
         // render
         // ------
@@ -166,7 +159,6 @@ int main(int argc, char *argv[])
 
         // render boxes
         snake->draw();
-        food->draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -174,7 +166,6 @@ int main(int argc, char *argv[])
 
     delete S;
     delete snake;
-    delete food;
 
     glfwTerminate();
     return 0;

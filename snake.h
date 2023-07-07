@@ -76,11 +76,25 @@ void Snake::grow()
     // reemplazar la cabeza por la comida
     cubos.emplace_front(food);
 
-    // crear nueva comida
+    // crear nueva comida en un lugar vacio
     food = new Cubo;
     food->setShader(shader);
     food->setColors(rand()%7, rand()%7, rand()%7, rand()%7, rand()%7, rand()%7);
-    food->translateVertex( vec3(dist(gen), dist(gen), 0.0f) );
+
+    vec3 food_pos;
+    bool choque = false;
+    do
+    {
+        food_pos = vec3(dist(gen), dist(gen), 0.0f);
+        choque = false;
+        for (auto it = cubos.begin(); it != cubos.end(); ++it) {
+            if (food_pos == (*it)->center) {
+                choque = true;
+                break;
+            }
+        }
+    } while (choque);
+    food->translateVertex(food_pos);
 }
 
 void Snake::update(Camera *camera, float deltaTime)

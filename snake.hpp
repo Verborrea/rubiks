@@ -67,7 +67,7 @@ void Snake::grow()
 {
     // añadir la comida a la cola
     cubos.emplace_back(food);
-    food->translateVertex(center_cola - food->center);
+    food->translateVertex(center_cola - food->center());
 
     // si se llegó a los 27 cubos -> to rubik
     if (cubos.size() == 27) {
@@ -88,7 +88,7 @@ void Snake::grow()
         food_pos = vec3(dist(gen), dist(gen), 0.0f);
         choque = false;
         for (auto it = cubos.begin(); it != cubos.end(); ++it) {
-            if (food_pos == (*it)->center) {
+            if (food_pos == (*it)->center()) {
                 choque = true;
                 break;
             }
@@ -115,11 +115,11 @@ void Snake::update(Camera *camera, float deltaTime)
         }
 
         // guardar la posición de la cola para el grow
-        center_cola = cubos.back()->center;
+        center_cola = cubos.back()->center();
 
         // actualizar la posición del cuerpo
         for (auto it = std::prev(cubos.end()); it != cubos.begin(); --it) {
-            vec3 dir_anterior = (*std::prev(it))->center - (*it)->center;
+            vec3 dir_anterior = (*std::prev(it))->center() - (*it)->center();
             (*it)->translateVertex(dir_anterior);
         }
 
@@ -127,7 +127,7 @@ void Snake::update(Camera *camera, float deltaTime)
         cubos.front()->translateVertex(curr_dir);
 
         // Si comió un cubo:
-        if (cubos.front()->center == food->center) {
+        if (cubos.front()->center() == food->center()) {
             // retroceder la cámara
             camera->Position[2] += zoom_factor;
             zoom_factor = zoom_factor * 0.8;
@@ -140,7 +140,7 @@ void Snake::update(Camera *camera, float deltaTime)
 
         // Verificar que el jugador no haya chocado consigo mismo
         for (auto it = std::next(cubos.begin()); it != cubos.end(); ++it) {
-            if (cubos.front()->center == (*it)->center) {
+            if (cubos.front()->center() == (*it)->center()) {
                 alive = false;
                 break;
             }
@@ -172,44 +172,12 @@ void Snake::move(snake_direction dir)
 
 void Snake::toRubik()
 {
-    vec3 pos[27] = {
-        vec3(-1.0f, 1.0f, 1.0f),
-        vec3( 0.0f, 1.0f, 1.0f),
-        vec3( 1.0f, 1.0f, 1.0f),
-        vec3(-1.0f, 0.0f, 1.0f),
-        vec3( 0.0f, 0.0f, 1.0f),
-        vec3( 1.0f, 0.0f, 1.0f),
-        vec3(-1.0f,-1.0f, 1.0f),
-        vec3( 0.0f,-1.0f, 1.0f),
-        vec3( 1.0f,-1.0f, 1.0f),
-
-        vec3(-1.0f, 1.0f, 0.0f),
-        vec3( 0.0f, 1.0f, 0.0f),
-        vec3( 1.0f, 1.0f, 0.0f),
-        vec3(-1.0f, 0.0f, 0.0f),
-        vec3( 0.0f, 0.0f, 0.0f),
-        vec3( 1.0f, 0.0f, 0.0f),
-        vec3(-1.0f,-1.0f, 0.0f),
-        vec3( 0.0f,-1.0f, 0.0f),
-        vec3( 1.0f,-1.0f, 0.0f),
-
-        vec3(-1.0f, 1.0f,-1.0f),
-        vec3( 0.0f, 1.0f,-1.0f),
-        vec3( 1.0f, 1.0f,-1.0f),
-        vec3(-1.0f, 0.0f,-1.0f),
-        vec3( 0.0f, 0.0f,-1.0f),
-        vec3( 1.0f, 0.0f,-1.0f),
-        vec3(-1.0f,-1.0f,-1.0f),
-        vec3( 0.0f,-1.0f,-1.0f),
-        vec3( 1.0f,-1.0f,-1.0f),
-    };
-
     for (int i = 0; i < 27; i++) {
-        rubik->cubos[i]->translateVertex(vec3(0.0f, 0.0f, 0.0f) - rubik->cubos[i]->center);
+        rubik->cubos[i]->translateVertex(vec3() - rubik->cubos[i]->center());
         rubik->cubos[i]->rotateVertex(radians(-90.0f), rubik->rotations[i]);
         if (i == 19 || i == 22 || i == 25)
             rubik->cubos[i]->rotateVertex(radians(-90.0f), rubik->rotations[i]);
-        rubik->cubos[i]->translateVertex(pos[i] - rubik->cubos[i]->center);
+        rubik->cubos[i]->translateVertex(rubik->centros[i]);
     }
 
     rubik->active = true;

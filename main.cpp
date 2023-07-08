@@ -103,6 +103,13 @@ int main(int argc, char *argv[])
     // Vertex info ============================================================
 
     rubik = new Rubik(S);
+    rubik->move("U F");
+    do
+    {
+        rubik->update();
+    } while (!(rubik->movements_queue.empty()));
+    rubik->toSnake();
+
     snake = new Snake(rubik);
 
     // Textures ===============================================================

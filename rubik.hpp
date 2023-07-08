@@ -41,8 +41,6 @@ private:
     bool  animating;
     bool  needUpdate;
 
-    std::queue<char> movements_queue;
-
     void setCurrentMovement(char move);
     void updateCamada(char move);
     void updateCaraIndex(int face, int *faces, int *index);
@@ -53,10 +51,15 @@ public:
     void move(std::string movements);
     void draw();
     void update();
+    void toSnake();
 
     std::string moves;
     std::vector<Cubo *> cubos;
+    // para el snake
+    std::vector<vec3> centros;
     std::vector<vec3> rotations;
+
+    std::queue<char> movements_queue;
     Shader *shader;
     bool active;    // indica si se muestra en pantalla o no
 };
@@ -102,9 +105,42 @@ Rubik::Rubik(Shader *sh) : shader(sh)
         vec3(-1.0f, 0.0f, 0.0f),
     };
 
+    centros = {
+        vec3(-1.0f, 1.0f, 1.0f),
+        vec3( 0.0f, 1.0f, 1.0f),
+        vec3( 1.0f, 1.0f, 1.0f),
+        vec3(-1.0f, 0.0f, 1.0f),
+        vec3( 0.0f, 0.0f, 1.0f),
+        vec3( 1.0f, 0.0f, 1.0f),
+        vec3(-1.0f,-1.0f, 1.0f),
+        vec3( 0.0f,-1.0f, 1.0f),
+        vec3( 1.0f,-1.0f, 1.0f),
+
+        vec3(-1.0f, 1.0f, 0.0f),
+        vec3( 0.0f, 1.0f, 0.0f),
+        vec3( 1.0f, 1.0f, 0.0f),
+        vec3(-1.0f, 0.0f, 0.0f),
+        vec3( 0.0f, 0.0f, 0.0f),
+        vec3( 1.0f, 0.0f, 0.0f),
+        vec3(-1.0f,-1.0f, 0.0f),
+        vec3( 0.0f,-1.0f, 0.0f),
+        vec3( 1.0f,-1.0f, 0.0f),
+
+        vec3(-1.0f, 1.0f,-1.0f),
+        vec3( 0.0f, 1.0f,-1.0f),
+        vec3( 1.0f, 1.0f,-1.0f),
+        vec3(-1.0f, 0.0f,-1.0f),
+        vec3( 0.0f, 0.0f,-1.0f),
+        vec3( 1.0f, 0.0f,-1.0f),
+        vec3(-1.0f,-1.0f,-1.0f),
+        vec3( 0.0f,-1.0f,-1.0f),
+        vec3( 1.0f,-1.0f,-1.0f),
+    };
+
     for (int i = 0; i < 27; i++) {
         cubos.emplace_back(new Cubo);
         cubos[i]->setShader(shader);
+        cubos[i]->translateVertex(centros[i]);
     }
 
     cubos[0]->setColors(ORANGE, BLACK, BLACK, YELLOW, BLACK, BLUE);
@@ -220,6 +256,16 @@ void Rubik::move(std::string input)
         }
         c++;
         moves += ' ';
+    }
+}
+
+// Guardar la poscición de cada cubo para el snake
+void Rubik::toSnake()
+{
+    for (int i = 0; i < 27; i++) {
+        vec3 center = cubos[i]->center();
+        centros[i] = cubos[i]->center();
+        cubos[i]->translateVertex(vec3() - centros[i]);
     }
 }
 

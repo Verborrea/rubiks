@@ -31,6 +31,12 @@ struct vec3
     bool operator==(const vec3& vec);
 };
 
+std::ostream& operator<<(std::ostream& os, const vec3& vec)
+{
+    os << vec[0] << ',' << vec[1] << ',' << vec[2];
+    return os;
+}
+
 vec3::vec3()
 {
     data[0] = data[1] = data[2] = 0;
@@ -89,9 +95,9 @@ vec3 vec3::operator*=(const float& scalar) {
 }
 
 bool vec3::operator==(const vec3& vec) {
-    if ((*this)[0] != vec[0]) return false;
-    if ((*this)[1] != vec[1]) return false;
-    if ((*this)[2] != vec[2]) return false;
+    if (round((*this)[0]) != round(vec[0])) return false;
+    if (round((*this)[1]) != round(vec[1])) return false;
+    if (round((*this)[2]) != round(vec[2])) return false;
     return true;
 }
 

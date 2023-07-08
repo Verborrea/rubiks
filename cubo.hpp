@@ -25,12 +25,13 @@ private:
 
     vec4 vertex[8];
     Shader *shader;
+    vec3 _center;
+    bool needUpdate;
 public:
     Cubo();
     ~Cubo();
 
     mat4 model;
-    vec3 center;
 
     void draw();
     void setColors(int L, int R, int D, int U, int B, int F);
@@ -38,9 +39,10 @@ public:
 
     void rotateVertex(float angle, vec3 vec);
     void translateVertex(vec3 vec);
+    vec3 center();
 };
 
-Cubo::Cubo()
+Cubo::Cubo() : _center(0.0f, 0.0f, 0.0f), needUpdate(false)
 {
     #ifdef _WIN32
         gladLoadGL(glfwGetProcAddress);
@@ -157,6 +159,7 @@ void Cubo::rotateVertex(float angle, vec3 vec)
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glEnableVertexAttribArray(0);
     }
+    needUpdate = true;
 }
 
 void Cubo::translateVertex(vec3 vec)
@@ -179,7 +182,27 @@ void Cubo::translateVertex(vec3 vec)
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
         glEnableVertexAttribArray(0);
     }
-    center += vec;
+    needUpdate = true;
+}
+
+vec3 Cubo::center()
+{
+    if (!needUpdate) {
+        return _center;
+    }
+    _center = vec3(0.0f, 0.0f, 0.0f);
+    for(int i = 0; i < 8; i++) {
+        _center[0] += vertex[i][0];
+        _center[1] += vertex[i][1];
+        _center[2] += vertex[i][2];
+    }
+    for (int i = 0; i < 3; i++) {
+        _center[i] /= 8.0f;
+        // if (_center[i] < 0.0001f)
+        //     _center[i] = 0.0f;
+    }
+    needUpdate = false;
+    return _center;
 }
 
 #endif  // CUBO_H

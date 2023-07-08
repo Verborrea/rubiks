@@ -27,6 +27,7 @@ private:
     vec3 center_cola;
 
     float timer = 0.0f;
+    float zoom_factor = 2.0f;
     const float interval = 0.20f;    // cada cuantos seg se mueve la serpiente
 
     // Para la fruta
@@ -47,7 +48,7 @@ public:
     void toRubik();
 };
 
-Snake::Snake(Rubik *rb) : rubik(rb), gen(rd()), dist(-3, 3)
+Snake::Snake(Rubik *rb) : rubik(rb), gen(rd()), dist(-4, 4)
 {
     alive = true;
 
@@ -94,6 +95,10 @@ void Snake::update(Camera *camera, float deltaTime)
 {
     timer += deltaTime;
 
+    // actualizar la posición de la cámara
+    camera->Position[0] += curr_dir[0] * deltaTime * 5;
+    camera->Position[1] += curr_dir[1] * deltaTime * 5;
+
     if (timer >= interval) {
         timer = 0.0f;
 
@@ -115,12 +120,12 @@ void Snake::update(Camera *camera, float deltaTime)
         // actualizar la posición de la cabeza
         cubos.front()->translateVertex(curr_dir);
 
-        // actualizar la posición de la cámara
-        camera->Position[0] = cubos.front()->center[0];
-        camera->Position[1] = cubos.front()->center[1];
-
         // Si comió un cubo:
         if (cubos.front()->center == food->center) {
+            // retroceder la cámara
+            camera->Position[2] += zoom_factor;
+            zoom_factor = zoom_factor * 0.8;
+            std::cout << zoom_factor << std::endl;
             grow();
             if (cubos.size() == 27) return;
         }

@@ -24,6 +24,7 @@ private:
     Rubik  *rubik;
     vec3 last_dir;
     vec3 curr_dir;
+    vec3 center_cola;
 
     float timer = 0.0f;
     const float interval = 0.20f;    // cada cuantos seg se mueve la serpiente
@@ -60,8 +61,9 @@ Snake::Snake(Rubik *rb) : rubik(rb), gen(rd()), dist(-3, 3)
 
 void Snake::grow()
 {
-    // reemplazar la cabeza por la comida
-    cubos.emplace_front(food);
+    // añadir la comida a la cola
+    cubos.emplace_back(food);
+    food->translateVertex(center_cola - food->center);
 
     // si se llegó a los 27 cubos -> to rubik
     if (cubos.size() == 27) {
@@ -101,11 +103,8 @@ void Snake::update(Camera *camera, float deltaTime)
             movements.pop();
         }
 
-        // Si comió un cubo:
-        if (cubos.front()->center + curr_dir == food->center) {
-            grow();
-            return;
-        }
+        // guardar la posición de la cola para el grow
+        center_cola = cubos.back()->center;
 
         // actualizar la posición del cuerpo
         for (auto it = std::prev(cubos.end()); it != cubos.begin(); --it) {
@@ -119,6 +118,12 @@ void Snake::update(Camera *camera, float deltaTime)
         // actualizar la posición de la cámara
         camera->Position[0] = cubos.front()->center[0];
         camera->Position[1] = cubos.front()->center[1];
+
+        // Si comió un cubo:
+        if (cubos.front()->center == food->center) {
+            grow();
+            if (cubos.size() == 27) return;
+        }
 
         // Verificar que el jugador no haya chocado consigo mismo
         for (auto it = std::next(cubos.begin()); it != cubos.end(); ++it) {

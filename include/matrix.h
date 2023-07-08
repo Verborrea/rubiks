@@ -308,6 +308,8 @@ mat4 rotate(mat4 mat, float a, vec3 vec)
 {
     mat4 rot = mat4(1.0f);
 
+    if (vec == vec3()) return mat;
+
     vec = normalize(vec);
 
     rot[0][0] = cos(a) + vec[0]*vec[0]*(1.0f-cos(a));

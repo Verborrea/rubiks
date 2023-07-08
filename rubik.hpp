@@ -56,6 +56,7 @@ public:
 
     std::string moves;
     std::vector<Cubo *> cubos;
+    std::vector<vec3> rotations;
     Shader *shader;
     bool active;    // indica si se muestra en pantalla o no
 };
@@ -68,6 +69,38 @@ Rubik::Rubik(Shader *sh) : shader(sh)
     animating         = false;
     needUpdate        = false;
     active = false;
+
+    rotations = {
+        vec3( 1.0f, 0.0f, 0.0f),
+        vec3( 0.0f, 0.0f, 0.0f),
+        vec3( 1.0f, 0.0f, 0.0f),
+        vec3( 0.0f, 1.0f, 0.0f),
+        vec3( 0.0f, 0.0f, 0.0f),
+        vec3( 0.0f,-1.0f, 0.0f),
+        vec3(-1.0f, 0.0f, 0.0f),
+        vec3( 0.0f, 0.0f, 0.0f),
+        vec3(-1.0f, 0.0f, 0.0f),
+
+        vec3( 0.0f, 1.0f, 0.0f),
+        vec3( 1.0f, 0.0f, 0.0f),
+        vec3( 0.0f,-1.0f, 0.0f),
+        vec3( 0.0f, 1.0f, 0.0f),
+        vec3( 0.0f, 0.0f, 0.0f),
+        vec3( 0.0f,-1.0f, 0.0f),
+        vec3( 0.0f, 1.0f, 0.0f),
+        vec3(-1.0f, 0.0f, 0.0f),
+        vec3( 0.0f,-1.0f, 0.0f),
+
+        vec3( 1.0f, 0.0f, 0.0f),
+        vec3( 1.0f, 0.0f, 0.0f),    // 180deg
+        vec3( 1.0f, 0.0f, 0.0f),
+        vec3( 0.0f, 1.0f, 0.0f),
+        vec3( 1.0f, 0.0f, 0.0f),    // 180deg
+        vec3( 0.0f,-1.0f, 0.0f),
+        vec3(-1.0f, 0.0f, 0.0f),
+        vec3( 1.0f, 0.0f, 0.0f),    // 180deg
+        vec3(-1.0f, 0.0f, 0.0f),
+    };
 
     for (int i = 0; i < 27; i++) {
         cubos.emplace_back(new Cubo);

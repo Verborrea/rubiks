@@ -48,15 +48,18 @@ public:
     void toRubik();
 };
 
-Snake::Snake(Rubik *rb) : rubik(rb), gen(rd()), dist(-4, 4)
+Snake::Snake(Rubik *rb) : rubik(rb), gen(rd()), dist(-3, 3)
 {
     alive = true;
 
     cubos.emplace_back(rubik->cubos[0]);
+    cubos.front()->rotateVertex(radians(90.0f), rubik->rotations[0]);
+    cubos.front()->translateVertex( vec3(0.0f, 0.0f, 0.0f) );
     
     // añadir la primera comida al tablero
     food_idx = 1;
     food = rubik->cubos[food_idx];
+    food->rotateVertex(radians(90.0f), rubik->rotations[1]);
     food->translateVertex( vec3(2.0f, 0.0f, 0.0f) );
 }
 
@@ -74,6 +77,9 @@ void Snake::grow()
 
     // crear nueva comida en un lugar vacio
     food = rubik->cubos[++food_idx];
+    food->rotateVertex(radians(90.0f), rubik->rotations[food_idx]);
+    if (food_idx == 19 || food_idx == 22 || food_idx == 25)
+        food->rotateVertex(radians(90.0f), rubik->rotations[food_idx]);
 
     vec3 food_pos;
     bool choque = false;
@@ -125,9 +131,11 @@ void Snake::update(Camera *camera, float deltaTime)
             // retroceder la cámara
             camera->Position[2] += zoom_factor;
             zoom_factor = zoom_factor * 0.8;
-            std::cout << zoom_factor << std::endl;
             grow();
-            if (cubos.size() == 27) return;
+            if (cubos.size() == 27)  {
+                camera->Position[2] = 10.0f;
+                return;
+            }
         }
 
         // Verificar que el jugador no haya chocado consigo mismo
@@ -164,7 +172,6 @@ void Snake::move(snake_direction dir)
 
 void Snake::toRubik()
 {
-    std::cout << "TO RUBIK" << std::endl;
     vec3 pos[27] = {
         vec3(-1.0f, 1.0f, 1.0f),
         vec3( 0.0f, 1.0f, 1.0f),
@@ -198,8 +205,13 @@ void Snake::toRubik()
     };
 
     for (int i = 0; i < 27; i++) {
+        rubik->cubos[i]->translateVertex(vec3(0.0f, 0.0f, 0.0f) - rubik->cubos[i]->center);
+        rubik->cubos[i]->rotateVertex(radians(-90.0f), rubik->rotations[i]);
+        if (i == 19 || i == 22 || i == 25)
+            rubik->cubos[i]->rotateVertex(radians(-90.0f), rubik->rotations[i]);
         rubik->cubos[i]->translateVertex(pos[i] - rubik->cubos[i]->center);
     }
+
     rubik->active = true;
 }
 

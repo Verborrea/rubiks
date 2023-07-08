@@ -2,7 +2,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
 #include "include/camera.h"
-#include "snake.h"
+
+#include "snake.hpp"
+#include "rubik.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -16,6 +18,7 @@ const char        *WIN_NAME   = "Rubik's Snake";
 
 // objetos
 Snake* snake;
+Rubik* rubik;
 
 // camera
 Camera camera(vec3(0.0f, 0.0f, 18.0f));
@@ -28,23 +31,31 @@ float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void snake_input(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (action == GLFW_PRESS) {
         switch (key)
         {
-        case GLFW_KEY_RIGHT:
-            snake->move(SNAKE_RIGHT);
-            break;
-        case GLFW_KEY_LEFT:
-            snake->move(SNAKE_LEFT);
-            break;
-        case GLFW_KEY_UP:
-            snake->move(SNAKE_UP);
-            break;
-        case GLFW_KEY_DOWN:
-            snake->move(SNAKE_DOWN);
-            break;
+        case GLFW_KEY_RIGHT: snake->move(SNAKE_RIGHT); break;
+        case GLFW_KEY_LEFT:  snake->move(SNAKE_LEFT);  break;
+        case GLFW_KEY_UP:    snake->move(SNAKE_UP);    break;
+        case GLFW_KEY_DOWN:  snake->move(SNAKE_DOWN);  break;
+        default: break;
+        }
+    }
+}
+
+void rubik_input(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action == GLFW_PRESS) {
+        switch (key)
+        {
+        case GLFW_KEY_1: rubik->move((mods == GLFW_MOD_SHIFT)?"F\'":"F"); break;
+        case GLFW_KEY_2: rubik->move((mods == GLFW_MOD_SHIFT)?"B\'":"B"); break;
+        case GLFW_KEY_3: rubik->move((mods == GLFW_MOD_SHIFT)?"L\'":"L"); break;
+        case GLFW_KEY_4: rubik->move((mods == GLFW_MOD_SHIFT)?"R\'":"R"); break;
+        case GLFW_KEY_5: rubik->move((mods == GLFW_MOD_SHIFT)?"U\'":"U"); break;
+        case GLFW_KEY_6: rubik->move((mods == GLFW_MOD_SHIFT)?"D\'":"D"); break;
         default: break;
         }
     }
@@ -91,7 +102,8 @@ int main(int argc, char *argv[])
 
     // Vertex info ============================================================
 
-    snake = new Snake(S);
+    rubik = new Rubik(S);
+    snake = new Snake(rubik);
 
     // Textures ===============================================================
     unsigned int texture1;
@@ -135,11 +147,17 @@ int main(int argc, char *argv[])
         // input
         // -----
         processInput(window);
-        glfwSetKeyCallback(window, key_callback);
+        if (rubik->active)
+            glfwSetKeyCallback(window, rubik_input);
+        else
+            glfwSetKeyCallback(window, snake_input);
 
         // update
         // -----
-        snake->update(&camera, deltaTime);
+        if (rubik->active)
+            rubik->update();
+        else
+            snake->update(&camera, deltaTime);
         
         // render
         // ------
@@ -157,8 +175,11 @@ int main(int argc, char *argv[])
         mat4 view = camera.GetViewMatrix();
         S->setMat4("view", view);
 
-        // render boxes
-        snake->draw();
+        // render snake or cube
+        if (rubik->active)
+            rubik->draw();
+        else
+            snake->draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -166,12 +187,13 @@ int main(int argc, char *argv[])
 
     delete S;
     delete snake;
+    delete rubik;
 
     glfwTerminate();
     return 0;
 }
 
-// g++ -std=c++17 -O2 -framework Cocoa -framework OpenGL -framework IOKit -lglfw3 -w main.cpp -o main
+// g++ -std=c++17 -O2 -framework Cocoa -framework OpenGL -framework IOKit -lglfw3 -w main.cpp -o main.exe
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -179,6 +201,18 @@ void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(C_UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(C_LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(C_RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(C_DOWN, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && rubik->active)
+        camera.ProcessKeyboard(C_FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && rubik->active)
+        camera.ProcessKeyboard(C_BACKWARD, deltaTime);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes

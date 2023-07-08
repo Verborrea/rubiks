@@ -7,7 +7,7 @@
 
 #include "include/camera.h"
 
-#include "cubo.h"
+#include "rubik.hpp"
 
 enum snake_direction {
     SNAKE_UP,
@@ -21,21 +21,21 @@ class Snake
 private:
     std::list<Cubo*> cubos;
     std::queue<vec3> movements;
-    Shader *shader;
+    Rubik  *rubik;
     vec3 last_dir;
     vec3 curr_dir;
 
     float timer = 0.0f;
-    const float interval = 0.25f;    // cada cuantos seg se mueve la serpiente
+    const float interval = 0.20f;    // cada cuantos seg se mueve la serpiente
 
     // Para la fruta
     Cubo *food;
+    int   food_idx;
     std::random_device rd;
     std::mt19937 gen;
     std::uniform_int_distribution<int> dist;
 public:
-    Snake(Shader *sh);
-    ~Snake();
+    Snake(Rubik *rb);
 
     bool alive;
 
@@ -43,32 +43,19 @@ public:
     void update(Camera *camera, float deltaTime);
     void draw();
     void move(snake_direction dir);
+    void toRubik();
 };
 
-Snake::Snake(Shader *sh) : shader(sh), gen(rd()), dist(-3, 3)
+Snake::Snake(Rubik *rb) : rubik(rb), gen(rd()), dist(-3, 3)
 {
     alive = true;
 
-    Cubo *head = new Cubo;
-    head->setShader(shader);
-    head->setColors(ORANGE, BLACK, BLACK, YELLOW, BLACK, BLUE);
+    cubos.emplace_back(rubik->cubos[0]);
     
-    cubos.emplace_back(head);
-
     // añadir la primera comida al tablero
-    srand(2352464);
-    food = new Cubo;
-    food->setShader(shader);
-    food->setColors(rand()%7, rand()%7, rand()%7, rand()%7, rand()%7, rand()%7);
+    food_idx = 1;
+    food = rubik->cubos[food_idx];
     food->translateVertex( vec3(2.0f, 0.0f, 0.0f) );
-}
-
-Snake::~Snake()
-{
-    for (auto cubo = cubos.begin(); cubo != cubos.end(); ++cubo) {
-        delete *cubo;
-    }
-    delete food;
 }
 
 void Snake::grow()
@@ -76,10 +63,14 @@ void Snake::grow()
     // reemplazar la cabeza por la comida
     cubos.emplace_front(food);
 
+    // si se llegó a los 27 cubos -> to rubik
+    if (cubos.size() == 27) {
+        toRubik();
+        return;
+    }
+
     // crear nueva comida en un lugar vacio
-    food = new Cubo;
-    food->setShader(shader);
-    food->setColors(rand()%7, rand()%7, rand()%7, rand()%7, rand()%7, rand()%7);
+    food = rubik->cubos[++food_idx];
 
     vec3 food_pos;
     bool choque = false;
@@ -113,6 +104,7 @@ void Snake::update(Camera *camera, float deltaTime)
         // Si comió un cubo:
         if (cubos.front()->center + curr_dir == food->center) {
             grow();
+            return;
         }
 
         // actualizar la posición del cuerpo
@@ -158,6 +150,47 @@ void Snake::move(snake_direction dir)
         movements.emplace(-1.0f, 0.0f, 0.0f);
 
     last_dir = movements.back();
+}
+
+void Snake::toRubik()
+{
+    std::cout << "TO RUBIK" << std::endl;
+    vec3 pos[27] = {
+        vec3(-1.0f, 1.0f, 1.0f),
+        vec3( 0.0f, 1.0f, 1.0f),
+        vec3( 1.0f, 1.0f, 1.0f),
+        vec3(-1.0f, 0.0f, 1.0f),
+        vec3( 0.0f, 0.0f, 1.0f),
+        vec3( 1.0f, 0.0f, 1.0f),
+        vec3(-1.0f,-1.0f, 1.0f),
+        vec3( 0.0f,-1.0f, 1.0f),
+        vec3( 1.0f,-1.0f, 1.0f),
+
+        vec3(-1.0f, 1.0f, 0.0f),
+        vec3( 0.0f, 1.0f, 0.0f),
+        vec3( 1.0f, 1.0f, 0.0f),
+        vec3(-1.0f, 0.0f, 0.0f),
+        vec3( 0.0f, 0.0f, 0.0f),
+        vec3( 1.0f, 0.0f, 0.0f),
+        vec3(-1.0f,-1.0f, 0.0f),
+        vec3( 0.0f,-1.0f, 0.0f),
+        vec3( 1.0f,-1.0f, 0.0f),
+
+        vec3(-1.0f, 1.0f,-1.0f),
+        vec3( 0.0f, 1.0f,-1.0f),
+        vec3( 1.0f, 1.0f,-1.0f),
+        vec3(-1.0f, 0.0f,-1.0f),
+        vec3( 0.0f, 0.0f,-1.0f),
+        vec3( 1.0f, 0.0f,-1.0f),
+        vec3(-1.0f,-1.0f,-1.0f),
+        vec3( 0.0f,-1.0f,-1.0f),
+        vec3( 1.0f,-1.0f,-1.0f),
+    };
+
+    for (int i = 0; i < 27; i++) {
+        rubik->cubos[i]->translateVertex(pos[i] - rubik->cubos[i]->center);
+    }
+    rubik->active = true;
 }
 
 #endif

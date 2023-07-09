@@ -198,8 +198,6 @@ vec3 Cubo::center()
     }
     for (int i = 0; i < 3; i++) {
         _center[i] /= 8.0f;
-        // if (_center[i] < 0.0001f)
-        //     _center[i] = 0.0f;
     }
     needUpdate = false;
     return _center;

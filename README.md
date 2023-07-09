@@ -9,3 +9,4 @@ Proyecto realizado por:
 Para compilar en Windows:
 
 1. Mover la carpeta `/resources` a `/build`
+2. Mover la carpeta `/shaders` a `/build`

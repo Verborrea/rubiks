@@ -6,6 +6,10 @@
 #include "snake.hpp"
 #include "rubik.hpp"
 
+#include "Cube.hpp"
+#include "Solver.hpp"
+#include "Rubik2.hpp"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -29,6 +33,169 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
+
+
+
+
+
+
+
+
+
+Cube cube;
+
+std::string translate(std::string path)
+{
+	string ret;
+
+	for (int i = 0; path[i]; i++)
+	{
+		if (path[i] == '1')
+			ret += " ";
+		else if (path[i] == '3')
+			ret += "\' ";
+		else if (path[i] == '2')
+			ret += "2 ";
+		else
+			ret += path[i];
+	}
+	return ret;
+}
+
+std::string mergeExtras(std::string moves){
+	char prev = 0;
+	int num = 0;
+	string out = "";
+	for (int i = 0; i < moves.size(); i+=2){
+		if (moves[i] == prev){
+			num = (num + moves[i + 1] - '0') % 4;
+			out = out.substr(0,out.size() - 2);
+		}
+		else{
+			prev = moves[i];
+			num = moves[i + 1] - '0';
+		}
+		if (num != 0){
+			out += moves[i];
+			out += (num + '0');
+		}
+		else{
+			prev = 0;
+		}
+	}
+	return out;
+}
+
+void shuffle(std::string moves)
+{
+    for (int i = 0; moves[i]; i++)
+        if (moves[i] == 'F' || moves[i] == 'R' || moves[i] == 'U' ||
+            moves[i] == 'B' || moves[i] == 'L' || moves[i] == 'D')
+        {
+            int num = 1;
+            if (moves[i + 1] == '\'')
+                num = 3;
+            else if (moves[i + 1] == '2')
+                num = 2;
+            cube.rotCube(moves[i], num);
+        }
+	cube.getColor();
+	cout << GREEN << "Cube shuffle complete!\n";
+}
+
+void hashSolve(Cube *solverCube, Solver *s, std::string *output)
+{
+	char	face;
+	int		num;
+	int		i = 0;
+	Cube 	c;
+	for (int phase = 1; phase <= 4; phase++) {
+		cout << YELLO << "Phase moves: " << endl;
+		while (s->getPhaseId(*solverCube, phase) != s->phaseGoal[phase]) {
+			string path = phaseHash[phase -1][s->getPhaseId(*solverCube, phase)];
+			if (path == "") {
+				cout << RED << "Solution not found" << endl;
+				exit(1);				
+			}
+			cout << WHITE << '\t' << translate(path) << endl;
+			if (path[0] != 'E') {
+				output->append(path);
+				while (!path.empty()) {
+					face = path[0];
+					num = path[1] - '0';
+					solverCube->rotCube(face, num);
+					path = path.substr(2);
+				}
+			}
+		}
+		if (*solverCube == c)
+			return ;
+		s->nextPhase();
+	}
+}
+
+void bfsSolve(Cube *solverCube, Solver *s, std::string *output)
+{
+	for (int phase = 1; phase <= 4; phase++)
+	{
+		int i = 0;
+		queue<Cube> queue;
+		queue.push(*solverCube);
+		*solverCube = s->BFS(0, queue);
+		solverCube->getColor();
+		output->append(solverCube->path);
+		// display->waitlist.append(solverCube->path + '+');
+		cout << YELLO << "Phase " << phase << " completed: " << endl;
+		cout << WHITE << '\t' << translate(solverCube->path) << endl;
+		solverCube->path = "";
+	}
+}
+
+void llamadaASolver (std::string moves){
+    if (moves != "") {
+        shuffle(moves);
+        string output;
+        Cube solverCube;
+
+        chrono::milliseconds startTime
+        = chrono::duration_cast<chrono::milliseconds>
+        (std::chrono::system_clock::now().time_since_epoch());
+        solverCube = cube;
+        Solver s(solverCube);
+        //  bfsSolve(&solverCube, &s, &output);
+        hashSolve(&solverCube, &s, &output);
+        chrono::milliseconds time
+        = chrono::duration_cast<chrono::milliseconds>
+        (std::chrono::system_clock::now().time_since_epoch()) - startTime;
+
+        std::string mon_output = translate(mergeExtras(output));
+
+        std::cout << GREEN << "Final output:" << endl;
+        std::cout << WHITE << mon_output << endl;
+
+        std::cout << "Before solution: " << rubik->moves << std::endl;
+
+        rubik->move(mon_output);
+
+        std::cout << "After solution: " <<  rubik->moves << std::endl;
+        
+        rubik->moves = "";
+
+        std::cout << "After clear: " << rubik->moves << std::endl;
+
+        std::cout << GREEN << "Total steps: " << WHITE << mergeExtras(output).size() / 2 << endl;
+        std::cout << GREEN << "Time to find solution: " << WHITE
+        << static_cast<float>(time.count()) / 1000 << " seconds\n";
+    }
+}
+
+
+
+
+
+
+
+
 
 
 void snake_input(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -56,6 +223,8 @@ void rubik_input(GLFWwindow* window, int key, int scancode, int action, int mods
         case GLFW_KEY_4: rubik->move((mods == GLFW_MOD_SHIFT)?"R\'":"R"); break;
         case GLFW_KEY_5: rubik->move((mods == GLFW_MOD_SHIFT)?"U\'":"U"); break;
         case GLFW_KEY_6: rubik->move((mods == GLFW_MOD_SHIFT)?"D\'":"D"); break;
+        case GLFW_KEY_7: llamadaASolver(rubik->moves); break;
+        case GLFW_KEY_8: rubik->shuffle(15); break;
         default: break;
         }
     }
@@ -103,7 +272,7 @@ int main(int argc, char *argv[])
     // Vertex info ============================================================
 
     rubik = new Rubik(S);
-    rubik->move("U F");
+    rubik->move("U");
     do
     {
         rubik->update();

@@ -52,6 +52,7 @@ public:
     void draw();
     void update();
     void toSnake();
+    void shuffle(int length);
 
     std::string moves;
     std::vector<Cubo *> cubos;
@@ -267,6 +268,20 @@ void Rubik::toSnake()
         centros[i] = cubos[i]->center();
         cubos[i]->translateVertex(vec3() - centros[i]);
     }
+}
+
+// Desordenar el cubo aleatoriamente
+void Rubik::shuffle(int length)
+{
+    std::string movs[] = { "F", "F\'", "B", "B\'", "L", "L\'", "R", "R\'", "U", "U\'", "D", "D\'" };
+    std::string cadena;
+    srand(time(0));
+    
+    for (int i = 0; i < length; ++i) {
+        cadena += movs[rand() % 12] + " ";
+    }
+    
+    move(cadena);
 }
 
 void Rubik::setCurrentMovement(char move)

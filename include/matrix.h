@@ -31,12 +31,6 @@ struct vec3
     bool operator==(const vec3& vec);
 };
 
-std::ostream& operator<<(std::ostream& os, const vec3& vec)
-{
-    os << vec[0] << ',' << vec[1] << ',' << vec[2];
-    return os;
-}
-
 vec3::vec3()
 {
     data[0] = data[1] = data[2] = 0;
